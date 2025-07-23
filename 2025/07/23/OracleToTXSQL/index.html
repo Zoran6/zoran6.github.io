@@ -17,18 +17,18 @@
   <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000">
   <meta name="theme-color" content="#f9fafb">
   
-  <title>Oracle迁移国产数据库TXSQL方案 - 行辙</title>
+  <title>Oracle迁移TXSQL-语法转换篇 - 行辙</title>
 
   
-    <meta name="description" content="核心原则：  理解差异： 深入理解Oracle和MySQL在SQL标准实现、特有功能、默认行为上的差异是迁移成功的基础。 逐项映射： 对Oracle中的每个SQL语句、函数、特性，寻找MySQL中对应的、等效的或替代的实现方式。 测试驱动： 迁移后必须进行严格的单元测试、功能测试和性能测试，确保结果一致性和应用稳定性。 分阶段进行： 优先迁移核心业务逻辑和常用查询，再处理复杂存储过程、触发器和高级">
+    <meta name="description" content="因为TXSQL兼容MySQL的语法，所以下文中用MySQL的语法替代TXSQL，本文重点关注语法转换。  核心原则：  理解差异： 深入理解Oracle和MySQL在SQL标准实现、特有功能、默认行为上的差异是迁移成功的基础。 逐项映射： 对Oracle中的每个SQL语句、函数、特性，寻找MySQL中对应的、等效的或替代的实现方式。 测试驱动： 迁移后必须进行严格的单元测试、功能测试和性能测试，">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Oracle迁移国产数据库TXSQL方案">
+<meta property="og:title" content="Oracle迁移TXSQL-语法转换篇">
 <meta property="og:url" content="https://zoran.wang/2025/07/23/OracleToTXSQL/index.html">
 <meta property="og:site_name" content="行辙">
-<meta property="og:description" content="核心原则：  理解差异： 深入理解Oracle和MySQL在SQL标准实现、特有功能、默认行为上的差异是迁移成功的基础。 逐项映射： 对Oracle中的每个SQL语句、函数、特性，寻找MySQL中对应的、等效的或替代的实现方式。 测试驱动： 迁移后必须进行严格的单元测试、功能测试和性能测试，确保结果一致性和应用稳定性。 分阶段进行： 优先迁移核心业务逻辑和常用查询，再处理复杂存储过程、触发器和高级">
+<meta property="og:description" content="因为TXSQL兼容MySQL的语法，所以下文中用MySQL的语法替代TXSQL，本文重点关注语法转换。  核心原则：  理解差异： 深入理解Oracle和MySQL在SQL标准实现、特有功能、默认行为上的差异是迁移成功的基础。 逐项映射： 对Oracle中的每个SQL语句、函数、特性，寻找MySQL中对应的、等效的或替代的实现方式。 测试驱动： 迁移后必须进行严格的单元测试、功能测试和性能测试，">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2025-07-23T15:50:29.000Z">
-<meta property="article:modified_time" content="2025-07-23T15:51:57.175Z">
+<meta property="article:modified_time" content="2025-07-23T16:25:10.532Z">
 <meta property="article:author" content="Zoran Wang">
 <meta property="article:tag" content="sql">
 <meta name="twitter:card" content="summary">
@@ -67,7 +67,7 @@
 <div class="widgets">
 
 
-<widget class="widget-wrapper post-list"><div class="widget-header dis-select"><span class="name">Recent Update</span></div><div class="widget-body fs14"><a class="item title" href="/2025/07/13/almalinux-base/"><span class="title">Almalinux9.6常用服务部署</span></a><a class="item title" href="/2025/07/13/sql-base/"><span class="title">SQL常用语法</span></a><a class="item title" href="/2025/07/13/sql-batch/"><span class="title">SQL批处理</span></a><a class="item title" href="/2025/07/13/sql-cte/"><span class="title">SQL中的递归CTE</span></a><a class="item title" href="/2025/07/23/OracleToTXSQL/"><span class="title">Oracle迁移国产数据库TXSQL方案</span></a><a class="item title" href="/2025/07/13/almalinux-podman/"><span class="title">Podman容器化部署&运维</span></a></div></widget>
+<widget class="widget-wrapper post-list"><div class="widget-header dis-select"><span class="name">Recent Update</span></div><div class="widget-body fs14"><a class="item title" href="/2025/07/23/OracleToTXSQL/"><span class="title">Oracle迁移TXSQL-语法转换篇</span></a><a class="item title" href="/2025/07/13/almalinux-base/"><span class="title">Almalinux9.6常用服务部署</span></a><a class="item title" href="/2025/07/13/sql-base/"><span class="title">SQL常用语法</span></a><a class="item title" href="/2025/07/13/sql-batch/"><span class="title">SQL批处理</span></a><a class="item title" href="/2025/07/13/sql-cte/"><span class="title">SQL中的递归CTE</span></a><a class="item title" href="/2025/07/13/almalinux-podman/"><span class="title">Podman容器化部署&运维</span></a></div></widget>
 </div>
 
 </div></aside><div class="l_main" id="main">
@@ -79,19 +79,22 @@
 <div class="article banner top">
   <div class="content">
     <div class="top bread-nav footnote"><div class="left"><div class="flex-row" id="breadcrumb"><a class="cap breadcrumb" href="/">Home</a>
-<span class="sep"></span><a class="cap breadcrumb" href="/">Blog</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/SQL/">SQL</a></div>
-<div class="flex-row" id="post-meta"><span class="text created">Posted on: <time datetime="2025-07-23T15:50:29.000Z">2025-07-23</time></span><span class="sep updated"></span><span class="text updated">Updated on: <time datetime="2025-07-23T15:51:57.175Z">2025-07-23</time></span></div></div></div>
+<span class="sep"></span><a class="cap breadcrumb" href="/">Blog</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93%E5%9B%BD%E4%BA%A7%E5%8C%96/">数据库国产化</a></div>
+<div class="flex-row" id="post-meta"><span class="text created">Posted on: <time datetime="2025-07-23T15:50:29.000Z">2025-07-23</time></span><span class="sep updated"></span><span class="text updated">Updated on: <time datetime="2025-07-23T16:25:10.532Z">2025-07-24</time></span></div></div></div>
     
     <div class="bottom only-title">
       
       <div class="text-area">
-        <h1 class="text title"><span>Oracle迁移国产数据库TXSQL方案</span></h1>
+        <h1 class="text title"><span>Oracle迁移TXSQL-语法转换篇</span></h1>
         
       </div>
     </div>
     
   </div>
-  </div><article class="md-text content"><p><strong>核心原则：</strong></p>
+  </div><article class="md-text content"><blockquote>
+<p>因为TXSQL兼容MySQL的语法，所以下文中用MySQL的语法替代TXSQL，本文重点关注语法转换。</p>
+</blockquote>
+<p><strong>核心原则：</strong></p>
 <ol>
 <li><strong>理解差异：</strong> 深入理解Oracle和MySQL在SQL标准实现、特有功能、默认行为上的差异是迁移成功的基础。</li>
 <li><strong>逐项映射：</strong> 对Oracle中的每个SQL语句、函数、特性，寻找MySQL中对应的、等效的或替代的实现方式。</li>
@@ -313,61 +316,6 @@
 </li>
 <li><strong>迁移：</strong> 确保在MySQL服务器、数据库、表和连接字符串中都明确指定使用 <code>utf8mb4</code> 和合适的排序规则 (<code>collation</code>)。排序规则影响字符串比较和排序规则，需根据业务需求选择（如是否区分大小写 <code>_ci</code>&#x2F;<code>_cs</code>，是否区分重音 <code>_ai</code>&#x2F;<code>_as</code>）。测试字符数据的正确存储、检索和比较。</li>
 </ul>
-<h2 id="五、-迁移步骤建议"><a href="#五、-迁移步骤建议" class="headerlink" title="五、 迁移步骤建议"></a>五、 迁移步骤建议</h2><ol>
-<li><strong>评估与规划：</strong><ul>
-<li>梳理待迁移的Oracle对象（表、视图、序列、存储过程、函数、包、触发器）。</li>
-<li>评估复杂度（特别是存储过程&#x2F;包&#x2F;高级特性）。</li>
-<li>选择目标MySQL版本（**强烈建议8.0+**）。</li>
-<li>制定迁移优先级和计划。</li>
-<li>准备测试环境和数据。</li>
-</ul>
-</li>
-<li><strong>Schema迁移：</strong><ul>
-<li>使用工具或脚本导出Oracle DDL。</li>
-<li>进行初步的DDL转换（数据类型映射、<code>||</code>-&gt;<code>CONCAT()</code>、移除<code>dual</code>等）。</li>
-<li><strong>人工仔细审查和修正</strong>转换后的MySQL DDL（重点：主键、外键、索引、约束、列类型、字符集）。</li>
-<li>在MySQL中创建Schema。</li>
-</ul>
-</li>
-<li><strong>数据迁移：</strong><ul>
-<li>使用专业ETL工具（如Informatica, Talend, Kettle）、数据库自带工具（<code>mysqldump</code>配合处理, <code>mysqlimport</code>）或编写脚本（Python, Perl）。</li>
-<li>处理大表时分批迁移。</li>
-<li>特别注意<code>CLOB/BLOB</code>大对象数据的迁移效率和完整性。</li>
-<li>严格进行数据一致性校验（记录数、关键字段校验和、抽样对比）。</li>
-</ul>
-</li>
-<li><strong>代码迁移 (SQL, PL&#x2F;SQL -&gt; MySQL SP)：</strong><ul>
-<li>这是<strong>最耗时和最具挑战</strong>的部分。</li>
-<li>使用转换工具进行初步处理。</li>
-<li><strong>投入大量人力进行逐行审查、重写和测试。</strong> 重点攻克存储过程&#x2F;函数&#x2F;包、复杂查询（分析函数、层次查询）、使用了Oracle特有函数的代码。</li>
-<li>优先迁移核心业务逻辑。</li>
-</ul>
-</li>
-<li><strong>测试：</strong><ul>
-<li><strong>单元测试：</strong> 对每个迁移后的存储过程、函数、视图进行独立测试。</li>
-<li><strong>功能测试：</strong> 模拟业务流程，验证应用功能是否正常。</li>
-<li><strong>性能测试：</strong> 对比关键业务操作在Oracle和MySQL上的性能。识别并优化慢查询（MySQL的<code>EXPLAIN</code>分析执行计划至关重要）。</li>
-<li><strong>回归测试：</strong> 确保迁移没有引入新问题。</li>
-<li><strong>并发与压力测试：</strong> 验证在高并发下的稳定性和性能。</li>
-</ul>
-</li>
-<li><strong>切换与验证：</strong><ul>
-<li>制定详细的切换回滚计划。</li>
-<li>进行最终数据同步。</li>
-<li>应用切换连接到MySQL。</li>
-<li>密切监控系统运行状态、性能和日志。</li>
-<li>准备快速回滚到Oracle的方案（如有必要）。</li>
-</ul>
-</li>
-</ol>
-<h2 id="六、-工具推荐"><a href="#六、-工具推荐" class="headerlink" title="六、 工具推荐"></a>六、 工具推荐</h2><ul>
-<li><strong>Oracle SQL Developer Migration Workbench:</strong> Oracle官方免费工具，支持Oracle到MySQL的迁移，能处理Schema、数据、部分代码转换。</li>
-<li><strong>AWS Schema Conversion Tool (SCT):</strong> AWS免费工具，功能强大，支持异构数据库迁移（包括Oracle到MySQL），能评估复杂度并转换Schema和部分代码。</li>
-<li><strong>Ispirer SQLWays:</strong> 商业工具，以高转换率著称，支持复杂PL&#x2F;SQL转换。</li>
-<li><strong>Percona Toolkit:</strong> 包含<code>pt-online-schema-change</code>（在线DDL）、<code>pt-table-checksum</code>（数据校验）等实用工具。</li>
-<li><strong>mysqldump &#x2F; mysqlpump &#x2F; mysqlimport:</strong> MySQL自带命令行工具，用于数据导出导入。</li>
-<li><strong>SQLyog, MySQL Workbench:</strong> GUI工具，方便Schema设计、查询、调试存储过程。</li>
-</ul>
 <h2 id="关键挑战与注意事项"><a href="#关键挑战与注意事项" class="headerlink" title="关键挑战与注意事项"></a>关键挑战与注意事项</h2><ol>
 <li><strong>存储过程&#x2F;包&#x2F;高级函数：</strong> 最大的技术难点，需要深入理解两边语法和特性，可能涉及大量重写。</li>
 <li><strong>隐式行为差异：</strong> 空字符串&#x3D;NULL、日期处理、隐式类型转换、默认隔离级别等，容易在测试中遗漏，导致生产环境问题。</li>
@@ -410,7 +358,7 @@
 
 
 
-<widget class="widget-wrapper toc" id="data-toc" collapse="false"><div class="widget-header dis-select"><span class="name">On This Page</span><a class="cap-action" onclick="sidebar.toggleTOC()" ><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6h11m-11 6h11m-11 6h11M4 6h1v4m-1 0h2m0 8H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg></a></div><div class="widget-body"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81-%E5%9F%BA%E7%A1%80%E8%AF%AD%E6%B3%95%E5%B7%AE%E5%BC%82%E4%B8%8E%E8%BF%81%E7%A7%BB"><span class="toc-text">一、 基础语法差异与迁移</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81-%E5%87%BD%E6%95%B0%E6%98%A0%E5%B0%84%E4%B8%8E%E6%9B%BF%E6%8D%A2"><span class="toc-text">二、 函数映射与替换</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81-%E9%AB%98%E7%BA%A7%E7%89%B9%E6%80%A7%E4%B8%8E%E5%AF%B9%E8%B1%A1%E8%BF%81%E7%A7%BB"><span class="toc-text">三、 高级特性与对象迁移</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81-%E5%AD%97%E7%AC%A6%E9%9B%86%E4%B8%8E%E6%8E%92%E5%BA%8F%E8%A7%84%E5%88%99"><span class="toc-text">四、 字符集与排序规则</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81-%E8%BF%81%E7%A7%BB%E6%AD%A5%E9%AA%A4%E5%BB%BA%E8%AE%AE"><span class="toc-text">五、 迁移步骤建议</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81-%E5%B7%A5%E5%85%B7%E6%8E%A8%E8%8D%90"><span class="toc-text">六、 工具推荐</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E6%8C%91%E6%88%98%E4%B8%8E%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-text">关键挑战与注意事项</span></a></li></ol></div><div class="widget-footer">
+<widget class="widget-wrapper toc" id="data-toc" collapse="false"><div class="widget-header dis-select"><span class="name">On This Page</span><a class="cap-action" onclick="sidebar.toggleTOC()" ><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6h11m-11 6h11m-11 6h11M4 6h1v4m-1 0h2m0 8H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg></a></div><div class="widget-body"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81-%E5%9F%BA%E7%A1%80%E8%AF%AD%E6%B3%95%E5%B7%AE%E5%BC%82%E4%B8%8E%E8%BF%81%E7%A7%BB"><span class="toc-text">一、 基础语法差异与迁移</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81-%E5%87%BD%E6%95%B0%E6%98%A0%E5%B0%84%E4%B8%8E%E6%9B%BF%E6%8D%A2"><span class="toc-text">二、 函数映射与替换</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81-%E9%AB%98%E7%BA%A7%E7%89%B9%E6%80%A7%E4%B8%8E%E5%AF%B9%E8%B1%A1%E8%BF%81%E7%A7%BB"><span class="toc-text">三、 高级特性与对象迁移</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81-%E5%AD%97%E7%AC%A6%E9%9B%86%E4%B8%8E%E6%8E%92%E5%BA%8F%E8%A7%84%E5%88%99"><span class="toc-text">四、 字符集与排序规则</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E6%8C%91%E6%88%98%E4%B8%8E%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-text">关键挑战与注意事项</span></a></li></ol></div><div class="widget-footer">
 
 <a class="top" onclick="util.scrollTop()"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12c0-4.714 0-7.071 1.464-8.536C4.93 2 7.286 2 12 2c4.714 0 7.071 0 8.535 1.464C22 4.93 22 7.286 22 12c0 4.714 0 7.071-1.465 8.535C19.072 22 16.714 22 12 22s-7.071 0-8.536-1.465C2 19.072 2 16.714 2 12Z"/><path stroke-linecap="round" stroke-linejoin="round" d="m9 15.5l3-3l3 3m-6-4l3-3l3 3"/></g></svg><span>Scroll to Top</span></a></div></widget>
 </div></aside><div class='float-panel blur'>
