@@ -20,15 +20,15 @@
   <title>Oracle迁移TXSQL-语法转换篇 - 行辙</title>
 
   
-    <meta name="description" content="因为TXSQL兼容MySQL的语法，所以下文中用MySQL的语法替代TXSQL，本文重点关注语法转换。  核心原则：  理解差异： 深入理解Oracle和MySQL在SQL标准实现、特有功能、默认行为上的差异是迁移成功的基础。 逐项映射： 对Oracle中的每个SQL语句、函数、特性，寻找MySQL中对应的、等效的或替代的实现方式。 测试驱动： 迁移后必须进行严格的单元测试、功能测试和性能测试，">
+    <meta name="description" content="因为TXSQL兼容MySQL的语法，所以下文中用MySQL的语法替代TXSQL，本文重点关注语法转换。  一、 基础语法差异与迁移 字符串连接：  Oracle: || (例如 SELECT &#39;Hello&#39; || &#39; World&#39; FROM dual;) MySQL: CONCAT() 函数 (例如 SELECT CONCAT(&#39;Hello&#39;, &amp;">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Oracle迁移TXSQL-语法转换篇">
 <meta property="og:url" content="https://zoran.wang/2025/07/23/OracleToTXSQL/index.html">
 <meta property="og:site_name" content="行辙">
-<meta property="og:description" content="因为TXSQL兼容MySQL的语法，所以下文中用MySQL的语法替代TXSQL，本文重点关注语法转换。  核心原则：  理解差异： 深入理解Oracle和MySQL在SQL标准实现、特有功能、默认行为上的差异是迁移成功的基础。 逐项映射： 对Oracle中的每个SQL语句、函数、特性，寻找MySQL中对应的、等效的或替代的实现方式。 测试驱动： 迁移后必须进行严格的单元测试、功能测试和性能测试，">
+<meta property="og:description" content="因为TXSQL兼容MySQL的语法，所以下文中用MySQL的语法替代TXSQL，本文重点关注语法转换。  一、 基础语法差异与迁移 字符串连接：  Oracle: || (例如 SELECT &#39;Hello&#39; || &#39; World&#39; FROM dual;) MySQL: CONCAT() 函数 (例如 SELECT CONCAT(&#39;Hello&#39;, &amp;">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2025-07-23T15:50:29.000Z">
-<meta property="article:modified_time" content="2025-07-23T16:25:10.532Z">
+<meta property="article:modified_time" content="2025-07-23T16:30:29.298Z">
 <meta property="article:author" content="Zoran Wang">
 <meta property="article:tag" content="sql">
 <meta name="twitter:card" content="summary">
@@ -80,7 +80,7 @@
   <div class="content">
     <div class="top bread-nav footnote"><div class="left"><div class="flex-row" id="breadcrumb"><a class="cap breadcrumb" href="/">Home</a>
 <span class="sep"></span><a class="cap breadcrumb" href="/">Blog</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93%E5%9B%BD%E4%BA%A7%E5%8C%96/">数据库国产化</a></div>
-<div class="flex-row" id="post-meta"><span class="text created">Posted on: <time datetime="2025-07-23T15:50:29.000Z">2025-07-23</time></span><span class="sep updated"></span><span class="text updated">Updated on: <time datetime="2025-07-23T16:25:10.532Z">2025-07-24</time></span></div></div></div>
+<div class="flex-row" id="post-meta"><span class="text created">Posted on: <time datetime="2025-07-23T15:50:29.000Z">2025-07-23</time></span><span class="sep updated"></span><span class="text updated">Updated on: <time datetime="2025-07-23T16:30:29.298Z">2025-07-24</time></span></div></div></div>
     
     <div class="bottom only-title">
       
@@ -94,14 +94,6 @@
   </div><article class="md-text content"><blockquote>
 <p>因为TXSQL兼容MySQL的语法，所以下文中用MySQL的语法替代TXSQL，本文重点关注语法转换。</p>
 </blockquote>
-<p><strong>核心原则：</strong></p>
-<ol>
-<li><strong>理解差异：</strong> 深入理解Oracle和MySQL在SQL标准实现、特有功能、默认行为上的差异是迁移成功的基础。</li>
-<li><strong>逐项映射：</strong> 对Oracle中的每个SQL语句、函数、特性，寻找MySQL中对应的、等效的或替代的实现方式。</li>
-<li><strong>测试驱动：</strong> 迁移后必须进行严格的单元测试、功能测试和性能测试，确保结果一致性和应用稳定性。</li>
-<li><strong>分阶段进行：</strong> 优先迁移核心业务逻辑和常用查询，再处理复杂存储过程、触发器和高级特性。</li>
-<li><strong>工具辅助：</strong> 利用SQL转换工具（如AWS SCT, Oracle SQL Developer Migration Workbench, Ispirer等）进行初步转换，但<strong>必须人工仔细审查和修正</strong>，工具无法处理所有情况。</li>
-</ol>
 <h2 id="一、-基础语法差异与迁移"><a href="#一、-基础语法差异与迁移" class="headerlink" title="一、 基础语法差异与迁移"></a>一、 基础语法差异与迁移</h2><ol>
 <li><p><strong>字符串连接：</strong></p>
 <ul>
