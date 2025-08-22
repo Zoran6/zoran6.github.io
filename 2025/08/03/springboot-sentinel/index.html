@@ -17,25 +17,26 @@
   <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000">
   <meta name="theme-color" content="#f9fafb">
   
-  <title>Oracle迁移TDSQL-语法转换篇 - 行辙</title>
+  <title>SpringBoot集成Redis哨兵模式 - 行辙</title>
 
   
-    <meta name="description" content="因为TDSQL兼容MySQL的语法，所以下文中用MySQL的语法替代TDSQL，本文重点关注语法转换。  一、 基础语法差异与迁移 字符串连接：  Oracle: || (例如 SELECT &#39;Hello&#39; || &#39; World&#39; FROM dual;) MySQL: CONCAT() 函数 (例如 SELECT CONCAT(&#39;Hello&#39;, &amp;">
+    <meta name="description" content="项目地址：  一、Redis哨兵模式连接原理（一）哨兵模式核心原理 监控机制：哨兵节点定期检查主节点和从节点的健康状态 故障检测：当主节点不可达时，哨兵集群通过投票机制确认故障 自动故障转移： 选举新的主节点（从从节点中选择） 更新其他从节点配置指向新主节点 通知客户端新的主节点地址   配置中心：客户端从哨兵获取当前主节点信息  （二）Spring Boot连接流程123456789graph">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Oracle迁移TDSQL-语法转换篇">
-<meta property="og:url" content="https://zoran.wang/2025/07/23/OracleToTXSQL/index.html">
+<meta property="og:title" content="SpringBoot集成Redis哨兵模式">
+<meta property="og:url" content="https://zoran.wang/2025/08/03/springboot-sentinel/index.html">
 <meta property="og:site_name" content="行辙">
-<meta property="og:description" content="因为TDSQL兼容MySQL的语法，所以下文中用MySQL的语法替代TDSQL，本文重点关注语法转换。  一、 基础语法差异与迁移 字符串连接：  Oracle: || (例如 SELECT &#39;Hello&#39; || &#39; World&#39; FROM dual;) MySQL: CONCAT() 函数 (例如 SELECT CONCAT(&#39;Hello&#39;, &amp;">
+<meta property="og:description" content="项目地址：  一、Redis哨兵模式连接原理（一）哨兵模式核心原理 监控机制：哨兵节点定期检查主节点和从节点的健康状态 故障检测：当主节点不可达时，哨兵集群通过投票机制确认故障 自动故障转移： 选举新的主节点（从从节点中选择） 更新其他从节点配置指向新主节点 通知客户端新的主节点地址   配置中心：客户端从哨兵获取当前主节点信息  （二）Spring Boot连接流程123456789graph">
 <meta property="og:locale" content="en_US">
-<meta property="article:published_time" content="2025-07-23T15:50:29.000Z">
-<meta property="article:modified_time" content="2025-08-02T15:50:39.725Z">
+<meta property="article:published_time" content="2025-08-03T07:12:10.000Z">
+<meta property="article:modified_time" content="2025-08-04T14:11:09.359Z">
 <meta property="article:author" content="Zoran Wang">
-<meta property="article:tag" content="sql">
+<meta property="article:tag" content="redis">
+<meta property="article:tag" content="springboot">
 <meta name="twitter:card" content="summary">
   
   
   
-  <meta name="keywords" content="sql">
+  <meta name="keywords" content="redis,springboot">
 
   <!-- feed -->
   
@@ -79,245 +80,88 @@
 <div class="article banner top">
   <div class="content">
     <div class="top bread-nav footnote"><div class="left"><div class="flex-row" id="breadcrumb"><a class="cap breadcrumb" href="/">Home</a>
-<span class="sep"></span><a class="cap breadcrumb" href="/">Blog</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/DB/">DB</a></div>
-<div class="flex-row" id="post-meta"><span class="text created">Posted on: <time datetime="2025-07-23T15:50:29.000Z">2025-07-23</time></span><span class="sep updated"></span><span class="text updated">Updated on: <time datetime="2025-08-02T15:50:39.725Z">2025-08-02</time></span></div></div></div>
+<span class="sep"></span><a class="cap breadcrumb" href="/">Blog</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/Java/">Java</a> <span class="sep"></span> <a class="cap breadcrumb-link" href="/categories/Java/Redis/">Redis</a></div>
+<div class="flex-row" id="post-meta"><span class="text created">Posted on: <time datetime="2025-08-03T07:12:10.000Z">2025-08-03</time></span><span class="sep updated"></span><span class="text updated">Updated on: <time datetime="2025-08-04T14:11:09.359Z">2025-08-04</time></span></div></div></div>
     
     <div class="bottom only-title">
       
       <div class="text-area">
-        <h1 class="text title"><span>Oracle迁移TDSQL-语法转换篇</span></h1>
+        <h1 class="text title"><span>SpringBoot集成Redis哨兵模式</span></h1>
         
       </div>
     </div>
     
   </div>
   </div><article class="md-text content"><blockquote>
-<p>因为TDSQL兼容MySQL的语法，所以下文中用MySQL的语法替代TDSQL，本文重点关注语法转换。</p>
+<p>项目地址：</p>
 </blockquote>
-<h2 id="一、-基础语法差异与迁移"><a href="#一、-基础语法差异与迁移" class="headerlink" title="一、 基础语法差异与迁移"></a>一、 基础语法差异与迁移</h2><ol>
-<li><p><strong>字符串连接：</strong></p>
+<h1 id="一、Redis哨兵模式连接原理"><a href="#一、Redis哨兵模式连接原理" class="headerlink" title="一、Redis哨兵模式连接原理"></a>一、Redis哨兵模式连接原理</h1><h2 id="（一）哨兵模式核心原理"><a href="#（一）哨兵模式核心原理" class="headerlink" title="（一）哨兵模式核心原理"></a>（一）哨兵模式核心原理</h2><ol>
+<li><strong>监控机制</strong>：哨兵节点定期检查主节点和从节点的健康状态</li>
+<li><strong>故障检测</strong>：当主节点不可达时，哨兵集群通过投票机制确认故障</li>
+<li><strong>自动故障转移</strong>：<ul>
+<li>选举新的主节点（从从节点中选择）</li>
+<li>更新其他从节点配置指向新主节点</li>
+<li>通知客户端新的主节点地址</li>
+</ul>
+</li>
+<li><strong>配置中心</strong>：客户端从哨兵获取当前主节点信息</li>
+</ol>
+<h2 id="（二）Spring-Boot连接流程"><a href="#（二）Spring-Boot连接流程" class="headerlink" title="（二）Spring Boot连接流程"></a>（二）Spring Boot连接流程</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">graph TD</span><br><span class="line">    A[Spring Boot应用] --&gt; B[连接哨兵集群]</span><br><span class="line">    B --&gt; C[查询当前主节点]</span><br><span class="line">    C --&gt; D[建立Redis连接]</span><br><span class="line">    D --&gt; E[执行读写操作]</span><br><span class="line">    E --&gt; F&#123;主节点故障？&#125;</span><br><span class="line">    F -- 是 --&gt; G[哨兵通知新主节点]</span><br><span class="line">    G --&gt; C</span><br><span class="line">    F -- 否 --&gt; E</span><br></pre></td></tr></table></figure>
+
+<h1 id="二、Spring-Boot详细配置步骤"><a href="#二、Spring-Boot详细配置步骤" class="headerlink" title="二、Spring Boot详细配置步骤"></a>二、Spring Boot详细配置步骤</h1><h2 id="（一）添加依赖"><a href="#（一）添加依赖" class="headerlink" title="（一）添加依赖"></a>（一）添加依赖</h2><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-data-redis<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>io.lettuce<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>lettuce-core<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span> <span class="comment">&lt;!-- 推荐使用Lettuce客户端 --&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="（二）配置文件（application-yml）"><a href="#（二）配置文件（application-yml）" class="headerlink" title="（二）配置文件（application.yml）"></a>（二）配置文件（application.yml）</h2><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">redis:</span></span><br><span class="line">    <span class="attr">password:</span> <span class="string">your_redis_password</span> <span class="comment"># 如果有密码</span></span><br><span class="line">    <span class="attr">sentinel:</span></span><br><span class="line">      <span class="attr">master:</span> <span class="string">mymaster</span> <span class="comment"># 哨兵配置的主节点名称</span></span><br><span class="line">      <span class="attr">nodes:</span> <span class="comment"># 哨兵节点列表</span></span><br><span class="line">        <span class="bullet">-</span> <span class="number">192.168</span><span class="number">.1</span><span class="number">.10</span><span class="string">:26379</span></span><br><span class="line">        <span class="bullet">-</span> <span class="number">192.168</span><span class="number">.1</span><span class="number">.11</span><span class="string">:26379</span></span><br><span class="line">        <span class="bullet">-</span> <span class="number">192.168</span><span class="number">.1</span><span class="number">.12</span><span class="string">:26379</span></span><br><span class="line">    <span class="attr">lettuce:</span></span><br><span class="line">      <span class="attr">pool:</span> <span class="comment"># 连接池配置</span></span><br><span class="line">        <span class="attr">max-active:</span> <span class="number">8</span></span><br><span class="line">        <span class="attr">max-idle:</span> <span class="number">8</span></span><br><span class="line">        <span class="attr">min-idle:</span> <span class="number">2</span></span><br><span class="line">        <span class="attr">max-wait:</span> <span class="string">-1ms</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="（三）高级配置类"><a href="#（三）高级配置类" class="headerlink" title="（三）高级配置类"></a>（三）高级配置类</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RedisConfig</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> RedisConnectionFactory <span class="title function_">redisConnectionFactory</span><span class="params">(</span></span><br><span class="line"><span class="params">        <span class="meta">@Value(&quot;$&#123;spring.redis.sentinel.nodes&#125;&quot;)</span> List&lt;String&gt; nodes,</span></span><br><span class="line"><span class="params">        <span class="meta">@Value(&quot;$&#123;spring.redis.sentinel.master&#125;&quot;)</span> String master,</span></span><br><span class="line"><span class="params">        <span class="meta">@Value(&quot;$&#123;spring.redis.password&#125;&quot;)</span> String password)</span> &#123;</span><br><span class="line">        </span><br><span class="line">        <span class="type">RedisSentinelConfiguration</span> <span class="variable">config</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">RedisSentinelConfiguration</span>()</span><br><span class="line">            .master(master)</span><br><span class="line">            .sentinelPassword(password); <span class="comment">// 哨兵密码（如果需要）</span></span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 添加哨兵节点</span></span><br><span class="line">        <span class="keyword">for</span> (String node : nodes) &#123;</span><br><span class="line">            String[] parts = node.split(<span class="string">&quot;:&quot;</span>);</span><br><span class="line">            config.sentinel(parts[<span class="number">0</span>], Integer.parseInt(parts[<span class="number">1</span>]));</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 配置连接池</span></span><br><span class="line">        <span class="type">LettucePoolingClientConfiguration</span> <span class="variable">clientConfig</span> <span class="operator">=</span> LettucePoolingClientConfiguration.builder()</span><br><span class="line">            .poolConfig(getPoolConfig())</span><br><span class="line">            .build();</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">LettuceConnectionFactory</span>(config, clientConfig);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> GenericObjectPoolConfig&lt;?&gt; getPoolConfig() &#123;</span><br><span class="line">        GenericObjectPoolConfig&lt;?&gt; poolConfig = <span class="keyword">new</span> <span class="title class_">GenericObjectPoolConfig</span>&lt;&gt;();</span><br><span class="line">        poolConfig.setMaxTotal(<span class="number">8</span>);</span><br><span class="line">        poolConfig.setMaxIdle(<span class="number">8</span>);</span><br><span class="line">        poolConfig.setMinIdle(<span class="number">2</span>);</span><br><span class="line">        poolConfig.setMaxWait(Duration.ofSeconds(<span class="number">30</span>));</span><br><span class="line">        <span class="keyword">return</span> poolConfig;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> RedisTemplate&lt;String, Object&gt; <span class="title function_">redisTemplate</span><span class="params">(RedisConnectionFactory factory)</span> &#123;</span><br><span class="line">        RedisTemplate&lt;String, Object&gt; template = <span class="keyword">new</span> <span class="title class_">RedisTemplate</span>&lt;&gt;();</span><br><span class="line">        template.setConnectionFactory(factory);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 使用JSON序列化</span></span><br><span class="line">        template.setKeySerializer(<span class="keyword">new</span> <span class="title class_">StringRedisSerializer</span>());</span><br><span class="line">        template.setValueSerializer(<span class="keyword">new</span> <span class="title class_">GenericJackson2JsonRedisSerializer</span>());</span><br><span class="line">        template.setHashKeySerializer(<span class="keyword">new</span> <span class="title class_">StringRedisSerializer</span>());</span><br><span class="line">        template.setHashValueSerializer(<span class="keyword">new</span> <span class="title class_">GenericJackson2JsonRedisSerializer</span>());</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">return</span> template;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="（四）故障转移处理最佳实践"><a href="#（四）故障转移处理最佳实践" class="headerlink" title="（四）故障转移处理最佳实践"></a>（四）故障转移处理最佳实践</h2><ol>
+<li><p><strong>重试机制</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="keyword">public</span> RedisTemplate&lt;String, Object&gt; <span class="title function_">redisTemplate</span><span class="params">(RedisConnectionFactory factory)</span> &#123;</span><br><span class="line">    <span class="comment">// ... 其他配置</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 启用事务支持</span></span><br><span class="line">    template.setEnableTransactionSupport(<span class="literal">true</span>);</span><br><span class="line">    <span class="keyword">return</span> template;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>哨兵连接健康检查</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SentinelHealthCheck</span> <span class="keyword">implements</span> <span class="title class_">ApplicationRunner</span> &#123;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> RedisConnectionFactory connectionFactory;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">(ApplicationArguments args)</span> &#123;</span><br><span class="line">        <span class="keyword">try</span> (<span class="type">RedisConnection</span> <span class="variable">connection</span> <span class="operator">=</span> connectionFactory.getConnection()) &#123;</span><br><span class="line">            connection.ping(); <span class="comment">// 测试连接</span></span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalStateException</span>(<span class="string">&quot;Redis哨兵连接失败&quot;</span>, e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h1 id="三、关键注意事项"><a href="#三、关键注意事项" class="headerlink" title="三、关键注意事项"></a>三、关键注意事项</h1><ol>
+<li><p><strong>网络配置</strong>：</p>
 <ul>
-<li><strong>Oracle:</strong> <code>||</code> (例如 <code>SELECT &#39;Hello&#39; || &#39; World&#39; FROM dual;</code>)</li>
-<li><strong>MySQL:</strong> <code>CONCAT()</code> 函数 (例如 <code>SELECT CONCAT(&#39;Hello&#39;, &#39; World&#39;);</code>)。<code>||</code> 在MySQL中默认是逻辑OR运算符（除非设置<code>SQL_MODE=PIPES_AS_CONCAT</code>，但不推荐依赖此设置）。</li>
-<li><strong>迁移：</strong> 将所有 <code>||</code> 替换为 <code>CONCAT()</code>。</li>
+<li>确保Spring Boot服务器能访问所有哨兵节点</li>
+<li>防火墙开放哨兵端口（默认26379）和Redis端口（默认6379）</li>
 </ul>
 </li>
-<li><p><strong>空字符串与NULL：</strong></p>
+<li><p><strong>哨兵配置一致性</strong>：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">检查哨兵配置</span></span><br><span class="line">redis-cli -h 192.168.1.10 -p 26379 sentinel master mymaster</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>连接验证</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@SpringBootTest</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">RedisSentinelTest</span> &#123;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> RedisTemplate&lt;String, String&gt; redisTemplate;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="keyword">void</span> <span class="title function_">testConnection</span><span class="params">()</span> &#123;</span><br><span class="line">        redisTemplate.opsForValue().set(<span class="string">&quot;test_key&quot;</span>, <span class="string">&quot;value&quot;</span>);</span><br><span class="line">        assertEquals(<span class="string">&quot;value&quot;</span>, redisTemplate.opsForValue().get(<span class="string">&quot;test_key&quot;</span>));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>故障转移模拟测试</strong>：</p>
 <ul>
-<li><strong>Oracle:</strong> 严格区分空字符串(<code>&#39;&#39;</code>)和<code>NULL</code>。</li>
-<li><strong>MySQL:</strong> <strong>不严格区分</strong>。在大多数上下文中（特别是使用<code>=</code>或<code>&lt;&gt;</code>比较时），空字符串(<code>&#39;&#39;</code>)被视为等同于<code>NULL</code>。但使用<code>IS NULL</code>和<code>IS NOT NULL</code>时能区分。</li>
-<li><strong>迁移：</strong> <strong>这是最容易出错的地方！</strong><ul>
-<li>仔细检查所有使用 <code>column = &#39;&#39;</code> 或 <code>column &lt;&gt; &#39;&#39;</code> 的条件。通常需要改为 <code>column IS NULL</code> 或 <code>(column IS NULL OR column = &#39;&#39;)</code> 或 <code>(column IS NOT NULL AND column &lt;&gt; &#39;&#39;)</code>，具体逻辑取决于Oracle中的原始意图。</li>
-<li>检查<code>NVL</code>&#x2F;<code>NVL2</code>等处理空值的函数逻辑，确保在MySQL中达到相同效果（MySQL的<code>IFNULL</code>&#x2F;<code>COALESCE</code>处理NULL，不处理空串）。</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><p><strong>伪表 DUAL：</strong></p>
-<ul>
-<li><strong>Oracle:</strong> <code>SELECT SYSDATE FROM dual;</code> <code>SELECT 1+1 FROM dual;</code> (DUAL是单行单列虚拟表)</li>
-<li><strong>MySQL:</strong> <code>SELECT NOW();</code> <code>SELECT 1+1;</code> (可以直接执行，不需要FROM子句)</li>
-<li><strong>迁移：</strong> 删除不必要的 <code>FROM dual</code>。</li>
-</ul>
-</li>
-<li><p><strong>分页查询：</strong></p>
-<ul>
-<li><strong>Oracle 12c 之前:</strong> 使用 <code>ROWNUM</code> 和子查询实现复杂分页。</li>
-<li><strong>Oracle 12c+:</strong> 使用 <code>OFFSET ... FETCH ...</code>。</li>
-<li><strong>MySQL:</strong> 使用 <code>LIMIT [offset,] row_count</code> 或 <code>LIMIT row_count OFFSET offset</code>。</li>
-<li><strong>迁移：</strong><ul>
-<li>将Oracle 12c+的 <code>OFFSET ... FETCH ...</code> 直接替换为MySQL的 <code>LIMIT ... OFFSET ...</code> 语法。</li>
-<li>将Oracle 12c之前基于<code>ROWNUM</code>的复杂分页逻辑重写为使用<code>LIMIT ... OFFSET ...</code>。通常需要去掉外层包装的子查询。</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><p><strong>日期和时间：</strong></p>
-<ul>
-<li><strong>获取当前时间:</strong><ul>
-<li>Oracle: <code>SYSDATE</code> (精确到秒), <code>SYSTIMESTAMP</code> (精确到小数秒)</li>
-<li>MySQL: <code>NOW()</code> (返回<code>DATETIME</code>，精确到秒), <code>CURRENT_TIMESTAMP()</code> (同<code>NOW()</code>), <code>SYSDATE()</code> (每次调用实时获取，可能影响基于语句的复制和某些优化), <code>CURDATE()</code>, <code>CURTIME()</code>。推荐使用 <code>NOW()</code> 或 <code>CURRENT_TIMESTAMP()</code>。</li>
-</ul>
-</li>
-<li><strong>日期加减:</strong><ul>
-<li>Oracle: <code>date_column + INTERVAL &#39;1&#39; DAY</code>, <code>date_column - 7</code></li>
-<li>MySQL: <code>DATE_ADD(date_column, INTERVAL 1 DAY)</code>, <code>DATE_SUB(date_column, INTERVAL 7 DAY)</code> 或 <code>date_column + INTERVAL 1 DAY</code>, <code>date_column - INTERVAL 7 DAY</code> (MySQL也支持 <code>+/- INTERVAL</code> 语法，推荐)。</li>
-</ul>
-</li>
-<li><strong>日期截断：</strong><ul>
-<li>Oracle: <code>TRUNC(date_column)</code> (到天), <code>TRUNC(date_column, &#39;MM&#39;)</code> (到月)</li>
-<li>MySQL: <code>DATE(date_column)</code> (提取日期部分), <code>LAST_DAY(date_column)</code> (月末), 对于其他截断通常使用 <code>DATE_FORMAT(date_column, &#39;%Y-%m-01&#39;)</code> (月初) 或组合函数。</li>
-</ul>
-</li>
-<li><strong>日期格式化：</strong><ul>
-<li>Oracle: <code>TO_CHAR(date_column, &#39;YYYY-MM-DD HH24:MI:SS&#39;)</code></li>
-<li>MySQL: <code>DATE_FORMAT(date_column, &#39;%Y-%m-%d %H:%i:%s&#39;)</code> (注意：<code>%H</code>是24小时制, <code>%i</code>是分钟)</li>
-</ul>
-</li>
-<li><strong>字符串转日期：</strong><ul>
-<li>Oracle: <code>TO_DATE(&#39;2023-10-27&#39;, &#39;YYYY-MM-DD&#39;)</code></li>
-<li>MySQL: <code>STR_TO_DATE(&#39;2023-10-27&#39;, &#39;%Y-%m-%d&#39;)</code></li>
-</ul>
-</li>
-<li><strong>迁移：</strong> 系统性地替换日期相关函数和运算符。特别注意格式模型的不同。</li>
-</ul>
-</li>
-<li><p><strong>序列 (Sequence)：</strong></p>
-<ul>
-<li><strong>Oracle:</strong> 使用显式的<code>SEQUENCE</code>对象 (<code>CREATE SEQUENCE ...</code>), 通过 <code>sequence_name.NEXTVAL</code> 和 <code>sequence_name.CURRVAL</code> 访问。</li>
-<li><strong>MySQL:</strong> 使用 <code>AUTO_INCREMENT</code> 属性为主键列自动生成唯一ID (主要用于单表)。对于需要全局序列或多表共享序列，有以下方案：<ul>
-<li><strong>方案A (推荐)：</strong> 创建一个专门的表来模拟序列 (包含 <code>id</code> AUTO_INCREMENT 字段)。通过 <code>INSERT ... ; SELECT LAST_INSERT_ID();</code> 获取新值。需要小心并发和事务管理。</li>
-<li><strong>方案B：</strong> 使用MySQL 8.0+的 <code>AUTO_INCREMENT</code> 的持久化特性（<code>innodb_autoinc_lock_mode=2</code> - interleaved lock mode）结合 <code>LAST_INSERT_ID()</code>，但这主要解决批量插入的间隙问题，不完全等同于独立序列。</li>
-<li><strong>方案C (谨慎)：</strong> 使用第三方工具或自定义函数。</li>
-</ul>
-</li>
-<li><strong>迁移：</strong> 对于主键，优先使用<code>AUTO_INCREMENT</code>。对于非主键序列需求，采用方案A（模拟序列表）并重写所有 <code>NEXTVAL</code>&#x2F;<code>CURRVAL</code> 的访问逻辑。</li>
-</ul>
-</li>
-<li><p><strong>数据类型映射：</strong></p>
-<ul>
-<li><strong>常用映射:</strong><ul>
-<li><code>NUMBER(p, s)</code> -&gt; <code>DECIMAL(p, s)</code> (精确数值)</li>
-<li><code>VARCHAR2(n [CHAR|BYTE])</code> -&gt; <code>VARCHAR(n)</code> (MySQL的<code>VARCHAR</code>长度指字符数，需确认n是否足够，注意UTF8MB4字符可能占4字节)</li>
-<li><code>NVARCHAR2(n)</code> -&gt; <code>NVARCHAR(n)</code> 或 <code>VARCHAR(n) CHARACTER SET utf8mb4</code> (存储Unicode)</li>
-<li><code>DATE</code> -&gt; <code>DATETIME</code> 或 <code>DATE</code> (Oracle DATE包含时间部分，MySQL DATE只有日期。如果需要时间，用<code>DATETIME</code>或<code>TIMESTAMP</code>)</li>
-<li><code>TIMESTAMP</code> -&gt; <code>TIMESTAMP</code> (注意MySQL <code>TIMESTAMP</code>范围是’1970-01-01 00:00:01’ UTC 到 ‘2038-01-19 03:14:07’ UTC, 且有时区转换行为) 或 <code>DATETIME</code> (范围’1000-01-01 00:00:00’到’9999-12-31 23:59:59’, 无时区转换)</li>
-<li><code>CLOB</code> -&gt; <code>LONGTEXT</code></li>
-<li><code>BLOB</code> -&gt; <code>LONGBLOB</code></li>
-<li><code>RAW(n)</code> -&gt; <code>VARBINARY(n)</code></li>
-<li><code>LONG</code> -&gt; <code>LONGTEXT</code> 或 <code>LONGBLOB</code> (已废弃类型)</li>
-</ul>
-</li>
-<li><strong>迁移：</strong> 根据实际存储内容和需求仔细选择最合适的MySQL类型。特别注意日期&#x2F;时间类型的选择和<code>TIMESTAMP</code>的范围限制。</li>
+<li>手动停止主节点：<code>redis-cli -p 6379 DEBUG SEGFAULT</code></li>
+<li>观察日志：哨兵选举新主节点的过程</li>
+<li>验证应用自动重连：检查Spring Boot日志是否有连接错误和恢复信息</li>
 </ul>
 </li>
 </ol>
-<h2 id="二、-函数映射与替换"><a href="#二、-函数映射与替换" class="headerlink" title="二、 函数映射与替换"></a>二、 函数映射与替换</h2><ol>
-<li><p><strong>空值处理：</strong></p>
+<h1 id="四、生产环境建议"><a href="#四、生产环境建议" class="headerlink" title="四、生产环境建议"></a>四、生产环境建议</h1><ol>
+<li><p><strong>哨兵部署</strong>：</p>
 <ul>
-<li><code>NVL(expr1, expr2)</code> -&gt; <code>IFNULL(expr1, expr2)</code> 或 <code>COALESCE(expr1, expr2)</code></li>
-<li><code>NVL2(expr1, expr2, expr3)</code> -&gt; <code>IF(expr1 IS NOT NULL, expr2, expr3)</code> 或 <code>CASE WHEN expr1 IS NOT NULL THEN expr2 ELSE expr3 END</code></li>
-<li><code>COALESCE(expr1, expr2, ..., exprn)</code> (两者都有，语法相同)</li>
+<li>至少3个哨兵节点（满足多数投票）</li>
+<li>部署在不同物理服务器上</li>
 </ul>
 </li>
-<li><p><strong>条件逻辑：</strong></p>
+<li><p><strong>客户端配置优化</strong>：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">redis:</span></span><br><span class="line">    <span class="attr">lettuce:</span></span><br><span class="line">      <span class="attr">shutdown-timeout:</span> <span class="string">200ms</span></span><br><span class="line">      <span class="attr">cluster:</span></span><br><span class="line">        <span class="attr">refresh:</span></span><br><span class="line">          <span class="attr">adaptive:</span> <span class="literal">true</span> <span class="comment"># 动态刷新拓扑视图</span></span><br><span class="line">          <span class="attr">period:</span> <span class="string">15s</span>    <span class="comment"># 刷新间隔</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>监控指标</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 添加监控</span></span><br><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="keyword">public</span> LettuceMetricsCollector <span class="title function_">metricsCollector</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">LettuceMetricsCollector</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <ul>
-<li><code>DECODE(value, search1, result1, search2, result2, ..., default)</code> -&gt; <code>CASE value WHEN search1 THEN result1 WHEN search2 THEN result2 ... ELSE default END</code></li>
-<li><code>CASE ... END</code> (两者语法基本相同，是首选)</li>
+<li>通过Micrometer导出指标到Prometheus&#x2F;Grafana</li>
 </ul>
 </li>
-<li><p><strong>字符串函数：</strong></p>
-<ul>
-<li><code>SUBSTR(string, start [, length])</code> -&gt; <code>SUBSTRING(string, start [, length])</code> (注意：Oracle的<code>start</code>可为负表示从末尾数，MySQL也支持负数start)</li>
-<li><code>INSTR(string, substring [, start [, occurrence]])</code> -&gt; <code>LOCATE(substring, string [, start])</code> (MySQL的<code>LOCATE</code>只返回第一次出现的位置，要模拟<code>occurrence</code>需要更复杂逻辑或自定义函数)</li>
-<li><code>LENGTH(string)</code> -&gt; <code>CHAR_LENGTH(string)</code> 或 <code>LENGTH(string)</code> (Oracle <code>LENGTH</code>按字符数，MySQL <code>LENGTH()</code>按字节数, <code>CHAR_LENGTH()</code>按字符数。<strong>强烈推荐在涉及多字节字符集时使用<code>CHAR_LENGTH()</code></strong>)</li>
-<li><code>LPAD(string, length [, pad_string])</code> &#x2F; <code>RPAD(...)</code> (两者都有，语法相同)</li>
-<li><code>UPPER(string)</code> &#x2F; <code>LOWER(string)</code> (两者都有，语法相同)</li>
-<li><code>TRIM([[LEADING|TRAILING|BOTH] trim_character FROM] string)</code> (两者语法基本相同)</li>
-<li><code>REPLACE(string, search_string, replacement_string)</code> (两者都有，语法相同)</li>
-</ul>
-</li>
-<li><p><strong>聚合函数：</strong></p>
-<ul>
-<li><code>COUNT, SUM, AVG, MIN, MAX</code> (两者语法基本相同)</li>
-<li><code>LISTAGG(measure_expr [, delimiter]) WITHIN GROUP (ORDER BY sort_expr)</code> -&gt; <code>GROUP_CONCAT([DISTINCT] expr [, separator] [ORDER BY ... [ASC|DESC]])</code> (注意排序和分隔符位置语法差异)</li>
-</ul>
-</li>
-<li><p><strong>分析函数 (窗口函数)：</strong></p>
-<ul>
-<li>Oracle有丰富的分析函数 (<code>ROW_NUMBER(), RANK(), DENSE_RANK(), LEAD(), LAG(), SUM() OVER(), ...</code>)</li>
-<li><strong>MySQL 8.0+ 已支持标准SQL窗口函数，语法与Oracle高度相似。</strong> 这是迁移到MySQL 8.0+的巨大优势！</li>
-<li><strong>迁移：</strong> 如果使用MySQL 8.0+，大部分分析函数可以直接迁移或做极小语法调整（如别名引用）。如果使用MySQL 5.7或更低版本，<strong>需要彻底重写</strong>为使用变量(@var)模拟或复杂的自连接&#x2F;子查询，工作量巨大且性能可能不佳。<strong>强烈建议升级到MySQL 8.0+以支持窗口函数。</strong></li>
-</ul>
-</li>
-<li><p><strong>其他常用函数：</strong></p>
-<ul>
-<li><code>TO_CHAR(number/date, format)</code> -&gt; 数字: <code>FORMAT(number, decimals)</code> (注意返回字符串带千分位) 或 <code>CAST(number AS CHAR)</code>；日期: <code>DATE_FORMAT(date, format)</code></li>
-<li><code>TO_NUMBER(string)</code> -&gt; <code>CAST(string AS DECIMAL)</code> 或 <code>CONVERT(string, DECIMAL)</code></li>
-<li><code>SYSDATE</code> -&gt; <code>NOW()</code> 或 <code>CURRENT_TIMESTAMP()</code></li>
-<li><code>ADD_MONTHS(date, n)</code> -&gt; <code>DATE_ADD(date, INTERVAL n MONTH)</code></li>
-<li><code>MONTHS_BETWEEN(date1, date2)</code> -&gt; 需计算：<code>TIMESTAMPDIFF(MONTH, date2, date1)</code> + 调整 (注意Oracle结果含小数部分表示不足月的天数差异，精确模拟较复杂)</li>
-<li><code>LAST_DAY(date)</code> (两者都有)</li>
-<li><code>NEXT_DAY(date, &#39;DAYOFWEEK&#39;)</code> -&gt; 需要计算：<code>DATE_ADD(date, INTERVAL (7 - WEEKDAY(date) + CASE WHEN &#39;target_dow_index&#39; &gt; WEEKDAY(date) THEN &#39;target_dow_index&#39; - WEEKDAY(date) ELSE 7 - WEEKDAY(date) + &#39;target_dow_index&#39; END) DAY)</code> (很复杂，通常建议应用层处理或自定义函数)</li>
-<li><code>DBMS_RANDOM.VALUE</code> -&gt; <code>RAND()</code> (生成0-1随机浮点数)</li>
-</ul>
-</li>
+<li><p><strong>安全加固</strong>：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">redis:</span></span><br><span class="line">    <span class="attr">sentinel:</span></span><br><span class="line">      <span class="attr">password:</span> <span class="string">sentinel_password</span> <span class="comment"># 哨兵独立密码</span></span><br><span class="line">    <span class="attr">ssl:</span> <span class="literal">true</span> <span class="comment"># 启用TLS加密</span></span><br></pre></td></tr></table></figure></li>
 </ol>
-<h2 id="三、-高级特性与对象迁移"><a href="#三、-高级特性与对象迁移" class="headerlink" title="三、 高级特性与对象迁移"></a>三、 高级特性与对象迁移</h2><ol>
-<li><p><strong>存储过程、函数、包：</strong></p>
-<ul>
-<li><strong>语法差异巨大：</strong> PL&#x2F;SQL (Oracle) vs MySQL的存储过程语言（基于SQL&#x2F;PSM）。包(Package)在MySQL中没有直接对应概念。</li>
-<li><strong>迁移策略：</strong><ul>
-<li><strong>重构：</strong> 这是最彻底但也最耗时的方式。将Oracle的PL&#x2F;SQL代码（尤其是使用了大量Oracle特有函数、特性、游标、异常处理的代码）用MySQL的存储过程&#x2F;函数语法重写。</li>
-<li><strong>分解包：</strong> 将Oracle包中的存储过程、函数、变量、游标定义拆分到独立的MySQL存储过程、函数、临时表&#x2F;会话变量中。</li>
-<li><strong>工具转换+人工重写：</strong> 使用迁移工具进行初步转换，然后投入大量精力进行人工审查、测试和重写。</li>
-<li><strong>业务逻辑上移：</strong> 考虑是否可以将部分逻辑移到应用层代码中实现，减少对数据库存储过程的依赖。</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><p><strong>触发器：</strong></p>
-<ul>
-<li>语法 (<code>CREATE TRIGGER ... BEFORE/AFTER ... ON ... FOR EACH ROW ...</code>) 基本相似。</li>
-<li><strong>迁移注意点：</strong><ul>
-<li>替换触发器内部使用的Oracle特有函数和语法（如 <code>:NEW</code>, <code>:OLD</code> 引用新&#x2F;旧行在MySQL中写法相同）。</li>
-<li>注意MySQL的触发器<strong>不允许</strong>在触发器中调用存储过程（MySQL 5.7及之前）或对本表进行修改（可能导致递归循环）。MySQL 8.0允许在触发器中调用存储过程。</li>
-<li>仔细测试触发器逻辑，确保在MySQL中行为一致。</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><p><strong>视图：</strong></p>
-<ul>
-<li>语法 (<code>CREATE VIEW ... AS SELECT ...</code>) 基本相同。</li>
-<li><strong>迁移：</strong> 主要工作是确保视图定义中的SQL语句本身（涉及到的表、列、函数、条件）在MySQL中能正确执行并返回预期结果。替换其中的Oracle特有语法和函数。</li>
-</ul>
-</li>
-<li><p><strong>索引与约束：</strong></p>
-<ul>
-<li><strong>主键、外键、唯一约束、非空约束：</strong> 语法 (<code>PRIMARY KEY</code>, <code>FOREIGN KEY ... REFERENCES ...</code>, <code>UNIQUE</code>, <code>NOT NULL</code>) 基本相同，迁移时保留即可。</li>
-<li><strong>检查约束：</strong> Oracle支持，MySQL直到8.0.16才真正支持标准的<code>CHECK</code>约束（之前版本会解析但忽略）。<strong>迁移到MySQL 8.0.16+：</strong> 可以迁移<code>CHECK</code>约束。<strong>迁移到更低版本：</strong> 约束逻辑需要通过触发器或在应用层实现。</li>
-<li><strong>函数索引：</strong> Oracle支持。MySQL 8.0.13+支持在<code>InnoDB</code>上创建函数索引（称为Generated Columns Index）。<strong>迁移策略：</strong> 如果使用MySQL 8.0.13+，可以考虑使用Generated Column+索引模拟。否则，需要重写查询避免在WHERE条件中对列使用函数。</li>
-</ul>
-</li>
-<li><p><strong>事务与锁：</strong></p>
-<ul>
-<li>基本语法 (<code>START TRANSACTION</code>, <code>COMMIT</code>, <code>ROLLBACK</code>, <code>SAVEPOINT</code>) 相同。</li>
-<li><strong>隔离级别：</strong><ul>
-<li>Oracle默认通常是<code>READ COMMITTED</code>。</li>
-<li>MySQL InnoDB默认是<code>REPEATABLE READ</code>。<strong>行为有显著差异！</strong> (如MySQL RR通过快照避免不可重复读和幻读，Oracle RC可能遇到)。<strong>迁移：</strong> 评估应用对隔离级别的依赖。可以在MySQL连接会话或全局设置隔离级别 (<code>SET TRANSACTION ISOLATION LEVEL READ COMMITTED;</code>)。务必进行并发测试。</li>
-</ul>
-</li>
-<li><strong>锁机制：</strong> 两者都是基于锁+MVCC。理解差异对于高性能应用很重要，但SQL语法层面通常不需要修改。</li>
-</ul>
-</li>
-<li><p><strong>层次查询 (CONNECT BY)：</strong></p>
-<ul>
-<li><strong>Oracle:</strong> 使用 <code>START WITH ... CONNECT BY [PRIOR] ...</code> 进行递归查询。</li>
-<li><strong>MySQL 8.0+:</strong> 使用标准SQL的递归公用表表达式 <code>WITH RECURSIVE cte_name AS (...) SELECT ... FROM cte_name</code>。</li>
-<li><strong>迁移：</strong> 如果使用MySQL 8.0+，将<code>CONNECT BY</code>查询重写为<code>WITH RECURSIVE</code>语法。这是结构性的重写，需要理解递归CTE原理。低版本MySQL无内置支持，需要应用层递归或使用存储过程模拟，非常复杂。</li>
-</ul>
-</li>
-</ol>
-<h2 id="四、-字符集与排序规则"><a href="#四、-字符集与排序规则" class="headerlink" title="四、 字符集与排序规则"></a>四、 字符集与排序规则</h2><ul>
-<li><strong>Oracle:</strong> 常用<code>AL32UTF8</code> (UTF-8)。</li>
-<li><strong>MySQL:</strong> <strong>强烈推荐使用 <code>utf8mb4</code> 字符集和 <code>utf8mb4_0900_ai_ci</code> (或合适的) 排序规则。</strong><ul>
-<li><code>utf8mb4</code> 是真正的UTF-8，支持4字节字符（如emoji表情）。</li>
-<li>MySQL旧的<code>utf8</code>只支持3字节字符（已废弃）。</li>
-</ul>
-</li>
-<li><strong>迁移：</strong> 确保在MySQL服务器、数据库、表和连接字符串中都明确指定使用 <code>utf8mb4</code> 和合适的排序规则 (<code>collation</code>)。排序规则影响字符串比较和排序规则，需根据业务需求选择（如是否区分大小写 <code>_ci</code>&#x2F;<code>_cs</code>，是否区分重音 <code>_ai</code>&#x2F;<code>_as</code>）。测试字符数据的正确存储、检索和比较。</li>
-</ul>
-<h2 id="关键挑战与注意事项"><a href="#关键挑战与注意事项" class="headerlink" title="关键挑战与注意事项"></a>关键挑战与注意事项</h2><ol>
-<li><strong>存储过程&#x2F;包&#x2F;高级函数：</strong> 最大的技术难点，需要深入理解两边语法和特性，可能涉及大量重写。</li>
-<li><strong>隐式行为差异：</strong> 空字符串&#x3D;NULL、日期处理、隐式类型转换、默认隔离级别等，容易在测试中遗漏，导致生产环境问题。</li>
-<li><strong>性能调优：</strong> MySQL的优化器、锁机制、执行计划可能与Oracle不同。迁移后必须进行性能测试和优化（索引、查询重写、参数调整）。</li>
-<li><strong>事务与并发控制：</strong> 理解<code>REPEATABLE READ</code>与<code>READ COMMITTED</code>的差异对应用并发逻辑的影响。</li>
-<li><strong>字符集与编码：</strong> 确保<code>utf8mb4</code>正确配置，避免乱码问题。</li>
-<li><strong>测试覆盖度：</strong> 测试不充分是迁移失败的主要原因。需要全面的测试计划和数据。</li>
-<li><strong>人员技能：</strong> 团队需要同时熟悉Oracle和MySQL（特别是MySQL 8.0的新特性）。</li>
-</ol>
-<p><strong>总结：</strong> Oracle迁移到MySQL在SQL层面是一个系统性的工程，涉及大量语法、函数和特性的映射、重写与适配。成功的关键在于<strong>深入理解差异、严格的测试、对复杂代码（特别是存储过程）的重点投入以及选择MySQL 8.0+版本</strong>。务必做好详细规划、风险评估和充分的测试验证。祝您迁移顺利！</p>
+<p>通过以上配置，Spring Boot应用可以稳定连接Redis哨兵集群，自动处理故障转移，实现高可用数据访问。实际部署时需根据业务负载调整连接池参数和超时设置。</p>
 
 <div class="article-footer fs14">
     <section id="license">
@@ -329,14 +173,14 @@
     <section id="share">
       <div class="header"><span>Share</span></div>
       <div class="body">
-        <div class="link"><input class="copy-area" readonly="true" id="copy-link" value="https://zoran.wang/2025/07/23/OracleToTXSQL/" /></div>
+        <div class="link"><input class="copy-area" readonly="true" id="copy-link" value="https://zoran.wang/2025/08/03/springboot-sentinel/" /></div>
         <div class="social-wrap dis-select"><a class="social share-item link" onclick="util.copy(&quot;copy-link&quot;, &quot;Copied!&quot;)"><img class="lazy"  src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/social/8411ed322ced6.svg" /></a></div>
         
       </div>
     </section>
     </div>
 </article>
-<div class="related-wrap" id="read-next"><section class="body"><div class="item" id="prev"><div class="note">Newer</div><a href="/2025/08/03/podman-redis/">Redis哨兵模式容器化部署</a></div><div class="item" id="next"><div class="note">Older</div><a href="/2025/07/13/almalinux-podman/">Podman容器化部署&运维</a></div></section></div>
+<div class="related-wrap" id="read-next"><section class="body"><div class="item" id="prev"><div class="note">Newer</div><a href="/2025/08/22/%E4%B9%B0%E5%91%BD%E9%92%B1/">买命钱</a></div><div class="item" id="next"><div class="note">Older</div><a href="/2025/08/03/podman-redis/">Redis哨兵模式容器化部署</a></div></section></div>
 
 
 
@@ -350,7 +194,7 @@
 
 
 
-<widget class="widget-wrapper toc" id="data-toc" collapse="false"><div class="widget-header dis-select"><span class="name">On This Page</span><a class="cap-action" onclick="sidebar.toggleTOC()" ><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6h11m-11 6h11m-11 6h11M4 6h1v4m-1 0h2m0 8H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg></a></div><div class="widget-body"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81-%E5%9F%BA%E7%A1%80%E8%AF%AD%E6%B3%95%E5%B7%AE%E5%BC%82%E4%B8%8E%E8%BF%81%E7%A7%BB"><span class="toc-text">一、 基础语法差异与迁移</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81-%E5%87%BD%E6%95%B0%E6%98%A0%E5%B0%84%E4%B8%8E%E6%9B%BF%E6%8D%A2"><span class="toc-text">二、 函数映射与替换</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81-%E9%AB%98%E7%BA%A7%E7%89%B9%E6%80%A7%E4%B8%8E%E5%AF%B9%E8%B1%A1%E8%BF%81%E7%A7%BB"><span class="toc-text">三、 高级特性与对象迁移</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81-%E5%AD%97%E7%AC%A6%E9%9B%86%E4%B8%8E%E6%8E%92%E5%BA%8F%E8%A7%84%E5%88%99"><span class="toc-text">四、 字符集与排序规则</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E6%8C%91%E6%88%98%E4%B8%8E%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-text">关键挑战与注意事项</span></a></li></ol></div><div class="widget-footer">
+<widget class="widget-wrapper toc" id="data-toc" collapse="false"><div class="widget-header dis-select"><span class="name">On This Page</span><a class="cap-action" onclick="sidebar.toggleTOC()" ><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6h11m-11 6h11m-11 6h11M4 6h1v4m-1 0h2m0 8H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg></a></div><div class="widget-body"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81Redis%E5%93%A8%E5%85%B5%E6%A8%A1%E5%BC%8F%E8%BF%9E%E6%8E%A5%E5%8E%9F%E7%90%86"><span class="toc-text">一、Redis哨兵模式连接原理</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%EF%BC%88%E4%B8%80%EF%BC%89%E5%93%A8%E5%85%B5%E6%A8%A1%E5%BC%8F%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86"><span class="toc-text">（一）哨兵模式核心原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%EF%BC%88%E4%BA%8C%EF%BC%89Spring-Boot%E8%BF%9E%E6%8E%A5%E6%B5%81%E7%A8%8B"><span class="toc-text">（二）Spring Boot连接流程</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81Spring-Boot%E8%AF%A6%E7%BB%86%E9%85%8D%E7%BD%AE%E6%AD%A5%E9%AA%A4"><span class="toc-text">二、Spring Boot详细配置步骤</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%EF%BC%88%E4%B8%80%EF%BC%89%E6%B7%BB%E5%8A%A0%E4%BE%9D%E8%B5%96"><span class="toc-text">（一）添加依赖</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%EF%BC%88%E4%BA%8C%EF%BC%89%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%EF%BC%88application-yml%EF%BC%89"><span class="toc-text">（二）配置文件（application.yml）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%EF%BC%88%E4%B8%89%EF%BC%89%E9%AB%98%E7%BA%A7%E9%85%8D%E7%BD%AE%E7%B1%BB"><span class="toc-text">（三）高级配置类</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%EF%BC%88%E5%9B%9B%EF%BC%89%E6%95%85%E9%9A%9C%E8%BD%AC%E7%A7%BB%E5%A4%84%E7%90%86%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-text">（四）故障转移处理最佳实践</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%85%B3%E9%94%AE%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-text">三、关键注意事项</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E5%BB%BA%E8%AE%AE"><span class="toc-text">四、生产环境建议</span></a></li></ol></div><div class="widget-footer">
 
 <a class="top" onclick="util.scrollTop()"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12c0-4.714 0-7.071 1.464-8.536C4.93 2 7.286 2 12 2c4.714 0 7.071 0 8.535 1.464C22 4.93 22 7.286 22 12c0 4.714 0 7.071-1.465 8.535C19.072 22 16.714 22 12 22s-7.071 0-8.536-1.465C2 19.072 2 16.714 2 12Z"/><path stroke-linecap="round" stroke-linejoin="round" d="m9 15.5l3-3l3 3m-6-4l3-3l3 3"/></g></svg><span>Scroll to Top</span></a></div></widget>
 </div></aside><div class='float-panel blur'>
