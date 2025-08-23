@@ -27,8 +27,8 @@
 <meta property="og:site_name" content="行辙">
 <meta property="og:description" content="环境说明：MacBook（ARM架构）、本地Podman容器化部署 架构说明：结合生产环境最佳实践，本地部署将搭建3个Redis容器实例（一主二从）和3个Sentinel容器实例，用6个独立的容器实现Redis哨兵模式。 Podman容器部署细节：  6个容器在同一个共享网络中（IP不同但能够相互访问） 6个容器分别挂载到podman管理的持久化卷 Redis主节点分配固定的IP，从节点配置只读">
 <meta property="og:locale" content="en_US">
-<meta property="article:published_time" content="2025-08-03T05:43:46.000Z">
-<meta property="article:modified_time" content="2025-08-03T07:22:47.204Z">
+<meta property="article:published_time" content="2025-08-03T05:43:47.000Z">
+<meta property="article:modified_time" content="2025-08-23T03:48:01.792Z">
 <meta property="article:author" content="Zoran Wang">
 <meta property="article:tag" content="podman">
 <meta property="article:tag" content="redis">
@@ -68,7 +68,7 @@
 <div class="widgets">
 
 
-<widget class="widget-wrapper post-list"><div class="widget-header dis-select"><span class="name">Recent Update</span></div><div class="widget-body fs14"><a class="item title" href="/2025/08/22/%E4%B9%B0%E5%91%BD%E9%92%B1/"><span class="title">卖命人，买命钱</span></a><a class="item title" href="/2025/08/03/springboot-sentinel/"><span class="title">SpringBoot集成Redis哨兵模式</span></a><a class="item title" href="/2025/08/03/podman-redis/"><span class="title">Redis哨兵模式容器化部署</span></a><a class="item title" href="/2025/07/13/sql-batch/"><span class="title">SQL批处理</span></a><a class="item title" href="/2025/07/13/sql-cte/"><span class="title">SQL中的递归CTE</span></a><a class="item title" href="/2025/07/13/sql-base/"><span class="title">SQL常用语法</span></a><a class="item title" href="/2025/07/13/almalinux-podman/"><span class="title">Podman容器化部署&运维</span></a><a class="item title" href="/2025/07/23/OracleToTXSQL/"><span class="title">Oracle迁移TDSQL-语法转换篇</span></a><a class="item title" href="/2025/07/13/almalinux-base/"><span class="title">Almalinux9.6常用服务部署</span></a></div></widget>
+<widget class="widget-wrapper post-list"><div class="widget-header dis-select"><span class="name">Recent Update</span></div><div class="widget-body fs14"><a class="item title" href="/2025/08/23/%E7%8E%A9%E8%BD%ACXML/"><span class="title">玩转XML的转换</span></a><a class="item title" href="/2025/08/22/%E4%B9%B0%E5%91%BD%E9%92%B1/"><span class="title">卖命人，买命钱</span></a><a class="item title" href="/2025/08/03/podman-redis/"><span class="title">Redis哨兵模式容器化部署</span></a><a class="item title" href="/2025/08/03/springboot-sentinel/"><span class="title">SpringBoot集成Redis</span></a><a class="item title" href="/2025/07/13/sql-batch/"><span class="title">SQL批处理</span></a><a class="item title" href="/2025/07/13/sql-cte/"><span class="title">SQL中的递归CTE</span></a><a class="item title" href="/2025/07/13/sql-base/"><span class="title">SQL常用语法</span></a><a class="item title" href="/2025/07/13/almalinux-podman/"><span class="title">Podman容器化部署&运维</span></a><a class="item title" href="/2025/07/23/OracleToTXSQL/"><span class="title">Oracle迁移TDSQL-语法转换篇</span></a><a class="item title" href="/2025/07/13/almalinux-base/"><span class="title">Almalinux9.6常用服务部署</span></a></div></widget>
 </div>
 
 </div></aside><div class="l_main" id="main">
@@ -81,7 +81,7 @@
   <div class="content">
     <div class="top bread-nav footnote"><div class="left"><div class="flex-row" id="breadcrumb"><a class="cap breadcrumb" href="/">Home</a>
 <span class="sep"></span><a class="cap breadcrumb" href="/">Blog</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/Podman/">Podman</a> <span class="sep"></span> <a class="cap breadcrumb-link" href="/categories/Podman/Redis/">Redis</a></div>
-<div class="flex-row" id="post-meta"><span class="text created">Posted on: <time datetime="2025-08-03T05:43:46.000Z">2025-08-03</time></span><span class="sep updated"></span><span class="text updated">Updated on: <time datetime="2025-08-03T07:22:47.204Z">2025-08-03</time></span></div></div></div>
+<div class="flex-row" id="post-meta"><span class="text created">Posted on: <time datetime="2025-08-03T05:43:47.000Z">2025-08-03</time></span><span class="sep updated"></span><span class="text updated">Updated on: <time datetime="2025-08-23T03:48:01.792Z">2025-08-23</time></span></div></div></div>
     
     <div class="bottom only-title">
       
@@ -214,7 +214,7 @@
     </section>
     </div>
 </article>
-<div class="related-wrap" id="read-next"><section class="body"><div class="item" id="prev"><div class="note">Newer</div><a href="/2025/08/03/springboot-sentinel/">SpringBoot集成Redis哨兵模式</a></div><div class="item" id="next"><div class="note">Older</div><a href="/2025/07/23/OracleToTXSQL/">Oracle迁移TDSQL-语法转换篇</a></div></section></div>
+<div class="related-wrap" id="read-next"><section class="body"><div class="item" id="prev"><div class="note">Newer</div><a href="/2025/08/03/springboot-sentinel/">SpringBoot集成Redis</a></div><div class="item" id="next"><div class="note">Older</div><a href="/2025/07/23/OracleToTXSQL/">Oracle迁移TDSQL-语法转换篇</a></div></section></div>
 
 
 
